@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Run Python Script') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'my_aws_account',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    // Run the Python script
+                    sh 'python3 run.py --aws_access_key_id $AWS_ACCESS_KEY_ID --aws_secret_access_key $AWS_SECRET_ACCESS_KEY'
+                }
+            }
+        }
+    }
+    post {
+        always {
+            // Clean up workspace
+            cleanWs()
+        }
+        failure {
+            // Notify on failure (e.g., email or Slack)
+            echo 'Pipeline failed!'
+        }
+    }
+}

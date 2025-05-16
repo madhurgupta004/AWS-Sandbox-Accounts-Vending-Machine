@@ -5,14 +5,15 @@ import logging
 from typing import List
 from botocore.exceptions import ClientError
 
-from boto3_helper import get_boto3_client
-from helper import generate_password, send_email
+from src.helpers.boto3_helper import get_boto3_client
+from src.helpers.helper import generate_password, send_email
+from src.helpers._arguments import access_key, secret_access_key
 
 ROOT_OU_ID = 'r-i68s'
 SANDBOX_OU_ID = 'ou-i68s-ggbxakm3'
 GROUP_NAME = 'Interns'
 
-organization_client = get_boto3_client('organizations')
+organization_client = get_boto3_client('organizations', access_key, secret_access_key)
 account_data = json.load(open('test_events/create_account.json'))
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -58,7 +59,7 @@ def move_into_ou():
 
 
 def get_iam_client_of_member_account():
-    sts_client = get_boto3_client('sts')
+    sts_client = get_boto3_client('sts', access_key, secret_access_key)
     role_arn = f"arn:aws:iam::{account_data['accountId']}:role/{account_data['roleName']}"
 
     response = sts_client.assume_role(
@@ -203,7 +204,7 @@ def main():
         create_group_for_interns(member_account_iam_client)
         attach_policies_to_interns_group(member_account_iam_client)
         create_users_for_interns(member_account_iam_client)
-        
+
         scp_ids = get_scp_ids()
         attach_scps_to_account(scp_ids)
         store_account_details()
