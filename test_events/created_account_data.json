@@ -1,0 +1,23 @@
+{
+    "accountName": "NDR",
+    "accountEmail": "madhurgupta590+ndr@gmail.com",
+    "roleName": "OrganizationAccountAccessRole",
+    "managerEmail": "madhurgupta590+ndr@gmail.com",
+    "managerUserName": "manager_ndr",
+    "users": [
+        {
+            "email": "madhurgupta590+ndr_user1@gmail.com",
+            "userName": "NDR1"
+        },
+        {
+            "email": "madhurgupta590+ndr_user2@gmail.com",
+            "userName": "NDR2"
+        }
+    ],
+    "serviceControlPolicies": [
+        "region-restrictions",
+        "Deny-t3-large-instance-type"
+    ],
+    "accountRequestId": "car-47e7f8b4fdb545588be26fbe7c619756",
+    "accountId": "723287706489"
+}
