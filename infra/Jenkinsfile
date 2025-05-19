@@ -12,8 +12,6 @@ pipeline {
                     accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
-                    // Run the Python script
-                    sh 'pip install boto3 --upgrade'
                     sh 'python3 src/run.py --access-key $AWS_ACCESS_KEY_ID --secret-access-key $AWS_SECRET_ACCESS_KEY'
                 }
             }
@@ -21,11 +19,9 @@ pipeline {
     }
     post {
         always {
-            // Clean up workspace
             cleanWs()
         }
         failure {
-            // Notify on failure (e.g., email or Slack)
             echo 'Pipeline failed!'
         }
     }

@@ -6,7 +6,7 @@ from typing import List
 from botocore.exceptions import ClientError
 
 from helpers.boto3_helper import get_boto3_client
-from helpers.helper import generate_password, send_email
+from helpers.helper import generate_password
 from helpers._arguments import access_key, secret_access_key
 
 ROOT_OU_ID = 'r-i68s'
@@ -98,7 +98,7 @@ def create_user_for_manager(iam_client):
     )
     logging.debug(response)
 
-    # send_email(manager_user_name, initial_password, account_data['managerEmail'], account_data['accountId'])
+    send_welcome_email(account_data['managerEmail'], manager_user_name, initial_password)
     logging.info(f'User for manager {account_data['managerUserName']} is created and email sent. Password is {initial_password}')
 
 
@@ -142,7 +142,7 @@ def create_users_for_interns(iam_client):
         )
         logging.debug(response)
 
-        # send_email(user_name, initial_password, user_email, account_data['accountId'])
+        send_welcome_email(user_email, user_name, initial_password)
         logging.info(f'User {user_name} created, added to group {GROUP_NAME}. Password is {initial_password}')
 
 
@@ -180,22 +180,56 @@ def attach_scps_to_account(scp_ids):
         logging.info(f'SCP {scp_id} attached.')
 
 
-def store_account_details():
-    with open('test_events/created_account_data.json', 'w') as f:
-        json.dump(account_data, f, indent=4)
-    logging.info('Account details stored successfully.')
+def send_welcome_email(to_email, username, initial_password, region="us-east-1"):
+    ses = get_boto3_client('ses', access_key=access_key, secret_access_key=secret_access_key, region_name=region)
 
+    login_url = f"https://{account_data['accountId']}.signin.aws.amazon.com/console"
 
-def close_account(account_id):
-    response = organization_client.close_account(
-        AccountId=account_id
+    subject = "Your AWS IAM User Account Details"
+    body_text = f"""Hello,
+
+            Your AWS IAM user has been created.
+
+            Username: {username}
+            Initial Password: {initial_password}
+            Console Sign-in Link: {login_url}
+
+            Please sign in and reset your password immediately.
+
+            Thanks,
+            AWS Admin Team
+            """
+    response = ses.send_email(
+        Source="madhurgupta590+ses@gmail.com",  
+        Destination={'ToAddresses': [to_email]},
+        Message={
+            'Subject': {'Data': subject},
+            'Body': {
+                'Text': {'Data': body_text}
+            }
+        }
     )
+    logging.debug(response)
+    logging.info(f"Email sent to {username} Message ID: {response['MessageId']}")
+
+
+def upload_account_details_to_s3():
+    key_name = f'created_account_data_{account_data['accountName']}.json'
+    file_name = f'test_events/{key_name}'
+
+    with open(file_name, 'w') as f:
+        json.dump(account_data, f, indent=4)
+
+    s3_client = get_boto3_client('s3', access_key, secret_access_key)
+    bucket_name = 'vending-machine-account-details'
+    s3_client.upload_file(file_name, bucket_name, key_name)
+    logging.info(f'Account details uploaded to S3 bucket {bucket_name}.')
 
 
 def main():
     try: 
         logging.info(account_data)
-        # create_account()
+        create_account()
         wait_until_account_created()
         move_into_ou()
         member_account_iam_client = get_iam_client_of_member_account()
@@ -207,7 +241,7 @@ def main():
 
         scp_ids = get_scp_ids()
         attach_scps_to_account(scp_ids)
-        store_account_details()
+        upload_account_details_to_s3()
         logging.info(f'Final account data: {account_data}')
     except KeyError as ex:
         logging.error(f'Invalid Input JSON File: {ex}')
