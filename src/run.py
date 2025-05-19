@@ -69,6 +69,8 @@ def get_iam_client_of_member_account():
     logging.debug(response)
     credentials = response['Credentials']
 
+    logging.info(f"Assumed role in member account {account_data['accountId']}")
+
     iam_client = get_boto3_client(
         'iam',
         access_key=credentials['AccessKeyId'],
