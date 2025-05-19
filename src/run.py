@@ -170,7 +170,6 @@ def get_scp_ids() -> List[str]:
 
 
 def attach_scps_to_account(scp_ids):
-    print(scp_ids)
     for scp_id in scp_ids:
         response = organization_client.attach_policy(
             PolicyId=scp_id,
@@ -178,6 +177,15 @@ def attach_scps_to_account(scp_ids):
         )
         logging.debug(response)
         logging.info(f'SCP {scp_id} attached.')
+
+
+def detach_default_scp():
+    response = organization_client.detach_policy(
+        PolicyId='p-FullAWSAccess',
+        TargetId=account_data['accountId']
+    )
+    logging.debug(response)
+    logging.info(f'Detached default SCP from account {account_data['accountId']}')
 
 
 def send_welcome_email(to_email, username, initial_password, region="us-east-1"):
@@ -229,7 +237,7 @@ def upload_account_details_to_s3():
 def main():
     try: 
         logging.debug(account_data)
-        create_account()
+        # create_account()
         wait_until_account_created()
         move_into_ou()
         member_account_iam_client = get_iam_client_of_member_account()
@@ -241,6 +249,7 @@ def main():
 
         scp_ids = get_scp_ids()
         attach_scps_to_account(scp_ids)
+        detach_default_scp()
         upload_account_details_to_s3()
         logging.debug(f'Final account data: {account_data}')
     except KeyError as ex:
