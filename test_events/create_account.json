@@ -1,8 +1,8 @@
 {
     "accountName": "DNSWatch",
-    "accountEmail": "madhurgupta590+dnswatch@gmail.com",
+    "accountEmail": "madhurgupta590+dns_watch@gmail.com",
     "roleName": "OrganizationAccountAccessRole",
-    "managerEmail": "madhurgupta590+dnswatch@gmail.com",
+    "managerEmail": "madhurgupta590+dns_watch@gmail.com",
     "managerUserName": "manager_dnswatch",
     "users": [
         {

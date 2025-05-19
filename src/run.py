@@ -181,7 +181,7 @@ def attach_scps_to_account(scp_ids):
 
 
 def send_welcome_email(to_email, username, initial_password, region="us-east-1"):
-    ses = get_boto3_client('ses', access_key=access_key, secret_access_key=secret_access_key, region_name=region)
+    ses = get_boto3_client('ses', access_key=access_key, secret_access_key=secret_access_key, region=region)
 
     login_url = f"https://{account_data['accountId']}.signin.aws.amazon.com/console"
 
@@ -228,7 +228,7 @@ def upload_account_details_to_s3():
 
 def main():
     try: 
-        logging.info(account_data)
+        logging.debug(account_data)
         create_account()
         wait_until_account_created()
         move_into_ou()
@@ -242,7 +242,7 @@ def main():
         scp_ids = get_scp_ids()
         attach_scps_to_account(scp_ids)
         upload_account_details_to_s3()
-        logging.info(f'Final account data: {account_data}')
+        logging.debug(f'Final account data: {account_data}')
     except KeyError as ex:
         logging.error(f'Invalid Input JSON File: {ex}')
         raise
