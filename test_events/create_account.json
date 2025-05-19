@@ -1,16 +1,16 @@
 {
     "accountName": "DNSWatch",
-    "accountEmail": "madhurgupta590+dns_watch@gmail.com",
+    "accountEmail": "madhurgupta590+dns_watch1@gmail.com",
     "roleName": "OrganizationAccountAccessRole",
-    "managerEmail": "madhurgupta590+dns_watch@gmail.com",
+    "managerEmail": "madhurgupta590+manager@gmail.com",
     "managerUserName": "manager_dnswatch",
     "users": [
         {
-            "email": "madhurgupta590+dnswatch_user1@gmail.com",
+            "email": "madhurgupta590+user@gmail.com",
             "userName": "DNSWatchUser1"
         },
         {
-            "email": "madhurgupta590+dnswatch_user2@gmail.com",
+            "email": "madhurgupta590+user@gmail.com",
             "userName": "DNSWatchUser2"
         }
     ],
