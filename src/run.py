@@ -5,9 +5,9 @@ import logging
 from typing import List
 from botocore.exceptions import ClientError
 
-from src.helpers.boto3_helper import get_boto3_client
-from src.helpers.helper import generate_password, send_email
-from src.helpers._arguments import access_key, secret_access_key
+from helpers.boto3_helper import get_boto3_client
+from helpers.helper import generate_password, send_email
+from helpers._arguments import access_key, secret_access_key
 
 ROOT_OU_ID = 'r-i68s'
 SANDBOX_OU_ID = 'ou-i68s-ggbxakm3'

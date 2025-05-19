@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    environment {
+        PYTHONPATH = "${WORKSPACE}/src"
+    }
     stages {
         stage('Run Python Script') {
             steps {
