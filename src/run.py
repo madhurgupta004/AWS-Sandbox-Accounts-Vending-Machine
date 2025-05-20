@@ -239,7 +239,7 @@ def upload_account_details_to_s3():
 def main():
     try: 
         logging.debug(account_data)
-        # create_account()
+        create_account()
         wait_until_account_created()
         move_into_ou()
         member_account_iam_client = get_iam_client_of_member_account()
