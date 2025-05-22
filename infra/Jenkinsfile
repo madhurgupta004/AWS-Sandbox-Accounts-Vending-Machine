@@ -17,7 +17,7 @@ pipeline {
                     accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
-                    sh 'python3 src/run.py --initial-account-data-key $params.KEY'
+                    sh "python3 src/run.py --initial-account-data-key ${params.KEY}"
                 }
             }
         }
