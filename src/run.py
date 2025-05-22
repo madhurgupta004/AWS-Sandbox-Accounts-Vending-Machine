@@ -5,14 +5,14 @@ import logging
 from typing import List
 from botocore.exceptions import ClientError
 
-from helpers import generate_password, get_boto3_client, initial_account_data_key, ACCESS_KEY, SECRET_ACCESS_KEY, ROOT_OU_ID, SANDBOX_OU_ID, GROUP_NAME, INITIAL_DATA_BUCKET_NAME, FINAL_DATA_BUCKET_NAME
+from helpers import *
 
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 
 def get_initial_account_data():
-    response = s3_client.get_object(Bucket=INITIAL_DATA_BUCKET_NAME, Key=initial_account_data_key)
+    response = s3_client.get_object(Bucket=INITIAL_DATA_BUCKET_NAME, Key=initial_account_data_s3_key)
 
     content = response['Body'].read().decode('utf-8')
     data = json.loads(content)
@@ -247,22 +247,22 @@ if __name__ == "__main__":
         account_data = get_initial_account_data()
         logging.info(f"{ACCESS_KEY}, {SECRET_ACCESS_KEY}")
 
-        # create_account()
-        # wait_until_account_created()
-        # move_into_ou()
+        create_account()
+        wait_until_account_created()
+        move_into_ou()
 
         member_account_iam_client = get_iam_client_of_member_account()
 
-        # create_user_for_manager()
-        # create_group_for_interns()
-        # attach_policies_to_interns_group()
-        # create_users_for_interns()
+        create_user_for_manager()
+        create_group_for_interns()
+        attach_policies_to_interns_group()
+        create_users_for_interns()
 
         scp_ids = get_scp_ids()
-        # attach_scps_to_account()
-        # detach_default_scp()
+        attach_scps_to_account()
+        detach_default_scp()
 
-        # upload_account_details_to_s3()
+        upload_account_details_to_s3()
 
         logging.info(f'Account creation successful!')
     except KeyError as ex:
