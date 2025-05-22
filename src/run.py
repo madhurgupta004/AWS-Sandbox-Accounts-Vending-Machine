@@ -245,7 +245,7 @@ if __name__ == "__main__":
         s3_client = get_boto3_client('s3', ACCESS_KEY, SECRET_ACCESS_KEY)
 
         account_data = get_initial_account_data()
-        logging.info(ACCESS_KEY, SECRET_ACCESS_KEY)
+        logging.info(f"{ACCESS_KEY}, {SECRET_ACCESS_KEY}")
 
         # create_account()
         # wait_until_account_created()
