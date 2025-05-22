@@ -5,21 +5,24 @@ import logging
 from typing import List
 from botocore.exceptions import ClientError
 
-from helpers.boto3_helper import get_boto3_client
-from helpers.helper import generate_password
-from helpers._arguments import access_key, secret_access_key
+from helpers import generate_password, get_boto3_client, access_key, secret_access_key, ROOT_OU_ID, SANDBOX_OU_ID, GROUP_NAME, INITIAL_DATA_BUCKET_NAME, FINAL_DATA_BUCKET_NAME
 
-ROOT_OU_ID = 'r-i68s'
-SANDBOX_OU_ID = 'ou-i68s-ggbxakm3'
-GROUP_NAME = 'Interns'
-
-organization_client = get_boto3_client('organizations', access_key, secret_access_key)
-account_data = json.load(open('test_events/create_account.json'))
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
+
+def get_initial_account_data(s3_client,object_key='initial_account_data_DNSWatch.json'):
+    response = s3_client.get_object(Bucket=INITIAL_DATA_BUCKET_NAME, Key=object_key)
+
+    content = response['Body'].read().decode('utf-8')
+    data = json.loads(content)
+    logging.debug(response)
+    logging.info(f"Initial account data fetched")
+    return data
+
+
 def create_account():
-    logging.info('Initialing account creation...')
+    logging.info('Initializing account creation...')
     response = organization_client.create_account(
         Email=account_data['accountEmail'],
         AccountName=account_data['accountName'],
@@ -264,4 +267,9 @@ def main():
         logging.error(f'Some error occured: {ex}')
         raise
 
-main()
+
+if __name__ == "__main__":
+    organization_client = get_boto3_client('organizations', access_key, secret_access_key)
+    s3_client = get_boto3_client('s3', access_key, secret_access_key)
+    account_data = get_initial_account_data()
+    main()

@@ -1,4 +1,3 @@
-from typing import List
 from argparse import ArgumentParser
 
 _parser = ArgumentParser()
