@@ -5,14 +5,14 @@ import logging
 from typing import List
 from botocore.exceptions import ClientError
 
-from helpers import generate_password, get_boto3_client, access_key, secret_access_key, ROOT_OU_ID, SANDBOX_OU_ID, GROUP_NAME, INITIAL_DATA_BUCKET_NAME, FINAL_DATA_BUCKET_NAME
+from helpers import generate_password, get_boto3_client, initial_account_data_key, ACCESS_KEY, SECRET_ACCESS_KEY, ROOT_OU_ID, SANDBOX_OU_ID, GROUP_NAME, INITIAL_DATA_BUCKET_NAME, FINAL_DATA_BUCKET_NAME
 
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 
-def get_initial_account_data(s3_client,object_key='initial_account_data_DNSWatch.json'):
-    response = s3_client.get_object(Bucket=INITIAL_DATA_BUCKET_NAME, Key=object_key)
+def get_initial_account_data():
+    response = s3_client.get_object(Bucket=INITIAL_DATA_BUCKET_NAME, Key=initial_account_data_key)
 
     content = response['Body'].read().decode('utf-8')
     data = json.loads(content)
@@ -62,7 +62,7 @@ def move_into_ou():
 
 
 def get_iam_client_of_member_account():
-    sts_client = get_boto3_client('sts', access_key, secret_access_key)
+    sts_client = get_boto3_client('sts', ACCESS_KEY, SECRET_ACCESS_KEY)
     role_arn = f"arn:aws:iam::{account_data['accountId']}:role/{account_data['roleName']}"
 
     response = sts_client.assume_role(
@@ -74,30 +74,30 @@ def get_iam_client_of_member_account():
 
     logging.info(f"Assumed role in member account {account_data['accountId']}")
 
-    iam_client = get_boto3_client(
+    member_account_iam_client = get_boto3_client(
         'iam',
         access_key=credentials['AccessKeyId'],
         secret_access_key=credentials['SecretAccessKey'],
         session_token=credentials['SessionToken']
     )
-    return iam_client
+    return member_account_iam_client
 
 
-def create_user_for_manager(iam_client):
+def create_user_for_manager():
     manager_user_name = account_data['managerUserName']
     initial_password = generate_password()
 
-    response = iam_client.create_user(UserName=manager_user_name)
+    response = member_account_iam_client.create_user(UserName=manager_user_name)
     logging.debug(response)
 
-    response = iam_client.create_login_profile(
+    response = member_account_iam_client.create_login_profile(
         UserName=manager_user_name,
         Password=initial_password,
         PasswordResetRequired=True
     )
     logging.debug(response)
 
-    response = iam_client.attach_user_policy(
+    response = member_account_iam_client.attach_user_policy(
         UserName=manager_user_name,
         PolicyArn='arn:aws:iam::aws:policy/AdministratorAccess'
     )
@@ -107,17 +107,17 @@ def create_user_for_manager(iam_client):
     logging.info(f'User for manager {account_data['managerUserName']} is created and email sent. Password is {initial_password}')
 
 
-def create_group_for_interns(iam_client):
-    response = iam_client.create_group(
+def create_group_for_interns():
+    response = member_account_iam_client.create_group(
         GroupName=GROUP_NAME
     )
     logging.debug(response)
     logging.info(f'Group {GROUP_NAME} created successfully.')
 
 
-def attach_policies_to_interns_group(iam_client):
+def attach_policies_to_interns_group():
     for policy_arn in account_data['internsGroupPolicyARNs']:
-        response = iam_client.attach_group_policy(
+        response = member_account_iam_client.attach_group_policy(
             GroupName=GROUP_NAME,
             PolicyArn=policy_arn
         )
@@ -125,23 +125,23 @@ def attach_policies_to_interns_group(iam_client):
         logging.info(f'Policy {policy_arn} attached to group {GROUP_NAME}.')
 
 
-def create_users_for_interns(iam_client):
+def create_users_for_interns():
     for user in account_data['users']:
         user_name = user['userName']
         user_email = user['email']
         initial_password = generate_password()
 
-        response = iam_client.create_user(UserName=user_name)
+        response = member_account_iam_client.create_user(UserName=user_name)
         logging.debug(response)
 
-        response = iam_client.create_login_profile(
+        response = member_account_iam_client.create_login_profile(
             UserName=user_name,
             Password=initial_password,
             PasswordResetRequired=True
         )
         logging.debug(response)
 
-        response = iam_client.add_user_to_group(
+        response = member_account_iam_client.add_user_to_group(
             GroupName=GROUP_NAME,
             UserName=user_name
         )
@@ -174,7 +174,7 @@ def get_scp_ids() -> List[str]:
     return scp_ids
 
 
-def attach_scps_to_account(scp_ids):
+def attach_scps_to_account():
     for scp_id in scp_ids:
         response = organization_client.attach_policy(
             PolicyId=scp_id,
@@ -194,7 +194,7 @@ def detach_default_scp():
 
 
 def send_welcome_email(to_email, username, initial_password, region="us-east-1"):
-    ses = get_boto3_client('ses', access_key=access_key, secret_access_key=secret_access_key, region=region)
+    ses = get_boto3_client('ses', access_key=ACCESS_KEY, secret_access_key=SECRET_ACCESS_KEY, region=region)
 
     login_url = f"https://{account_data['accountId']}.signin.aws.amazon.com/console"
 
@@ -227,36 +227,44 @@ def send_welcome_email(to_email, username, initial_password, region="us-east-1")
 
 
 def upload_account_details_to_s3():
-    key_name = f'created_account_data_{account_data['accountName']}.json'
-    file_name = f'test_events/{key_name}'
+    key_name = f'final_account_data_{account_data['accountName']}.json'
 
-    with open(file_name, 'w') as f:
-        json.dump(account_data, f, indent=4)
+    json_data = json.dumps(account_data)
+    s3_client.put_object(
+        Bucket=FINAL_DATA_BUCKET_NAME,
+        Key=key_name,
+        Body=json_data.encode('utf-8'),
+        ContentType='application/json'
+    )
+    logging.info(f'Account details uploaded to S3 bucket {FINAL_DATA_BUCKET_NAME}.')
 
-    s3_client = get_boto3_client('s3', access_key, secret_access_key)
-    bucket_name = 'vending-machine-account-details'
-    s3_client.upload_file(file_name, bucket_name, key_name)
-    logging.info(f'Account details uploaded to S3 bucket {bucket_name}.')
 
-
-def main():
+if __name__ == "__main__":
     try: 
-        logging.debug(account_data)
-        create_account()
-        wait_until_account_created()
-        move_into_ou()
+        organization_client = get_boto3_client('organizations', ACCESS_KEY, SECRET_ACCESS_KEY)
+        s3_client = get_boto3_client('s3', ACCESS_KEY, SECRET_ACCESS_KEY)
+
+        account_data = get_initial_account_data()
+        logging.info(ACCESS_KEY, SECRET_ACCESS_KEY)
+
+        # create_account()
+        # wait_until_account_created()
+        # move_into_ou()
+
         member_account_iam_client = get_iam_client_of_member_account()
 
-        create_user_for_manager(member_account_iam_client)
-        create_group_for_interns(member_account_iam_client)
-        attach_policies_to_interns_group(member_account_iam_client)
-        create_users_for_interns(member_account_iam_client)
+        # create_user_for_manager()
+        # create_group_for_interns()
+        # attach_policies_to_interns_group()
+        # create_users_for_interns()
 
         scp_ids = get_scp_ids()
-        attach_scps_to_account(scp_ids)
-        detach_default_scp()
-        upload_account_details_to_s3()
-        logging.debug(f'Final account data: {account_data}')
+        # attach_scps_to_account()
+        # detach_default_scp()
+
+        # upload_account_details_to_s3()
+
+        logging.info(f'Account creation successful!')
     except KeyError as ex:
         logging.error(f'Invalid Input JSON File: {ex}')
         raise
@@ -266,10 +274,3 @@ def main():
     except Exception as ex:
         logging.error(f'Some error occured: {ex}')
         raise
-
-
-if __name__ == "__main__":
-    organization_client = get_boto3_client('organizations', access_key, secret_access_key)
-    s3_client = get_boto3_client('s3', access_key, secret_access_key)
-    account_data = get_initial_account_data()
-    main()
