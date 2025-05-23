@@ -1,9 +1,6 @@
-import random
 import string
-
-
 import secrets
-import string
+
 
 def generate_password():
     """Generate a random 12-character AWS IAM-compliant password."""
