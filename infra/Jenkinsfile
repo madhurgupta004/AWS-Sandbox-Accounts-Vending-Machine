@@ -5,7 +5,7 @@ pipeline {
     }
 
     parameters {
-        string(name: 'KEY', description: 'Initial account details s3 key')
+        string(name: 'INITIAL_KEY', description: 'Key of the s3 object which contains initial account details ')
     }
 
     stages {
@@ -17,7 +17,7 @@ pipeline {
                     accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
-                    sh "python3 src/run.py --initial-account-data-key ${params.KEY}"
+                    sh "python3 src/run.py --initial-account-data-key ${params.INITIAL_KEY}"
                 }
             }
         }
