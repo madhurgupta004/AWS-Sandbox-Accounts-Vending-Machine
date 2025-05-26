@@ -15,7 +15,7 @@ def get_initial_account_data():
     with open('test_events/account_data.json', 'r') as file:
         data = json.load(file)
     logging.info(f"Initial account data fetched")
-    logging.info(account_data)
+    logging.info(data)
     return data
 
 
