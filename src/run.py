@@ -12,12 +12,10 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 
 
 def get_initial_account_data():
-    response = s3_client.get_object(Bucket=INITIAL_DATA_BUCKET_NAME, Key=initial_account_data_s3_key)
-
-    content = response['Body'].read().decode('utf-8')
-    data = json.loads(content)
-    logging.debug(response)
+    with open('test_events/account_data.json', 'r') as file:
+        data = json.load(file)
     logging.info(f"Initial account data fetched")
+    logging.info(account_data)
     return data
 
 
@@ -62,6 +60,7 @@ def move_into_ou():
 
 
 def get_iam_client_of_member_account():
+    return
     sts_client = get_boto3_client('sts', ACCESS_KEY, SECRET_ACCESS_KEY)
     role_arn = f"arn:aws:iam::{account_data['accountId']}:role/{account_data['roleName']}"
 
@@ -152,6 +151,7 @@ def create_users_for_interns():
 
 
 def get_scp_ids() -> List[str]:
+    return
     all_scps = []
     next_token = None
     while True:
@@ -245,26 +245,25 @@ if __name__ == "__main__":
         s3_client = get_boto3_client('s3', ACCESS_KEY, SECRET_ACCESS_KEY)
 
         account_data = get_initial_account_data()
-        logging.info(f"{ACCESS_KEY}, {SECRET_ACCESS_KEY}")
 
-        create_account()
-        wait_until_account_created()
-        move_into_ou()
+        # create_account()
+        # wait_until_account_created()
+        # move_into_ou()
 
         member_account_iam_client = get_iam_client_of_member_account()
 
-        create_user_for_manager()
-        create_group_for_interns()
-        attach_policies_to_interns_group()
-        create_users_for_interns()
+        # create_user_for_manager()
+        # create_group_for_interns()
+        # attach_policies_to_interns_group()
+        # create_users_for_interns()
 
         scp_ids = get_scp_ids()
-        attach_scps_to_account()
-        detach_default_scp()
+        # attach_scps_to_account()
+        # detach_default_scp()
 
-        upload_account_details_to_s3()
+        # upload_account_details_to_s3()
 
-        logging.info(f'Account creation successful!')
+        # logging.info(f'Account creation successful!')
     except KeyError as ex:
         logging.error(f'Invalid Input JSON File: {ex}')
         raise
