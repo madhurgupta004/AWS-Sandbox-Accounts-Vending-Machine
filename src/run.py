@@ -100,8 +100,8 @@ def create_user_for_manager():
     )
     logging.debug(response)
 
+    logging.info(f'User for manager {account_data['managerUserName']} is created.')
     send_welcome_email(account_data['managerEmail'], manager_user_name, initial_password)
-    logging.info(f'User for manager {account_data['managerUserName']} is created and email sent. Password is {initial_password}')
 
 
 def create_group_for_interns():
@@ -144,8 +144,8 @@ def create_users_for_interns():
         )
         logging.debug(response)
 
+        logging.info(f'User {user_name} created, added to group {GROUP_NAME}.')
         send_welcome_email(user_email, user_name, initial_password)
-        logging.info(f'User {user_name} created, added to group {GROUP_NAME}. Password is {initial_password}')
 
 
 def get_scp_ids() -> List[str]:
