@@ -240,7 +240,7 @@ def send_welcome_email(to_email, username, initial_password, region="us-east-1")
         """
 
     response = ses.send_email(
-        SourceS = SOURCE_EMAIL_ADDRESS,  
+        Source = SOURCE_EMAIL_ADDRESS,  
         Destination={'ToAddresses': [to_email]},
         Message={
             'Subject': {'Data': subject},
