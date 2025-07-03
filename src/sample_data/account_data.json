@@ -21,10 +21,8 @@
     ],
     "serviceControlPolicies": [
         "region-restrictions",
-        "AllowCloudformation",
-        "AllowIAM",
         "AllowServerlessServices",
-        "AllowCostExplorer"
+        "BasicPermissions"
     ],
     "internsGroupPolicyARNs": [
         "arn:aws:iam::aws:policy/ReadOnlyAccess",
