@@ -1,24 +1,29 @@
 {
-    "accountName": "WiFi",
-    "accountEmail": "madhurgupta590+wifi@gmail.com",
-    "roleName": "OrganizationAccountAccessRole",
+    "accountName": "NDR",
+    "accountEmail": "madhurgupta590+ndr@gmail.com",
     "managerEmail": "madhurgupta590+manager@gmail.com",
-    "managerUserName": "Tasir",
+    "managerUserName": "Manager_NDR",
+    "accountRequestId": "car-47fa8fc40623462fbe779ba7d4f87649",
     "users": [
         {
             "email": "madhurgupta590+user@gmail.com",
-            "userName": "Alok"
+            "userName": "Shailesh"
         },
         {
             "email": "madhurgupta590+user@gmail.com",
-            "userName": "Rahul"
+            "userName": "Faraz"
+        },
+        {
+            "email": "madhurgupta590+user@gmail.com",
+            "userName": "Ishu"
         }
     ],
     "serviceControlPolicies": [
         "region-restrictions",
         "AllowCloudformation",
         "AllowIAM",
-        "AllowServerlessServices"
+        "AllowServerlessServices",
+        "AllowCostExplorer"
     ],
     "internsGroupPolicyARNs": [
         "arn:aws:iam::aws:policy/ReadOnlyAccess",

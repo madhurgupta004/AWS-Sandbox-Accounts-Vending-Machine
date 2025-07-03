@@ -1,31 +1,27 @@
-pipeline {
-    agent any
-    environment {
-        PYTHONPATH = "${WORKSPACE}/src"
-    }
+node {
+    env.PYTHONPATH = "${WORKSPACE}/src"
 
-    stages {
+    try {
+        stage('Checkout') {
+            checkout scm
+        }
+
         stage('Run Python Script') {
-            steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'my_aws_account',
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                ]]) {
-                    sh "python3 src/run.py --initial-account-data-key hello"
-                    sh "ls"
-                    sh "pwd"
+            withCredentials([[
+                $class: 'AmazonWebServicesCredentialsBinding',
+                credentialsId: 'my_aws_account',
+                accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+            ]]) {
+                dir('src') {
+                    sh "python3 run.py"
                 }
             }
         }
-    }
-    post {
-        always {
-            cleanWs()
-        }
-        failure {
-            echo 'Pipeline failed!'
-        }
+    } catch (Exception e) {
+        echo 'Pipeline failed!'
+        throw e
+    } finally {
+        cleanWs()
     }
 }
