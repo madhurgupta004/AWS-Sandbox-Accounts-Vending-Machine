@@ -7,7 +7,7 @@ from .boto3_helper import get_boto3_client
 ROOT_OU_ID = 'r-i68s'
 SANDBOX_OU_ID = 'ou-i68s-ggbxakm3'
 GROUP_NAME = 'Interns'
-FINAL_DATA_BUCKET_NAME = 'sandbox-accounts-data-bucket'
+FINAL_DATA_BUCKET_NAME = 'sandbox-accounts-details'
 SOURCE_EMAIL_ADDRESS = 'madhurgupta590+ses@gmail.com'
 ACCESS_KEY = os.getenv('AWS_ACCESS_KEY_ID')
 SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
