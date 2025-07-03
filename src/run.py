@@ -191,6 +191,7 @@ def detach_default_scp():
 
 
 def send_welcome_email(to_email, username, initial_password, region="us-east-1"):
+    return
     ses = get_boto3_client('ses', access_key=ACCESS_KEY, secret_access_key=SECRET_ACCESS_KEY, region=region)
 
     login_url = f"https://{account_data['accountId']}.signin.aws.amazon.com/console"
