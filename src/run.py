@@ -12,7 +12,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 
 
 def get_initial_account_data():
-    with open('test_events/account_data.json', 'r') as file:
+    with open('sample_data/account_data.json', 'r') as file:
         data = json.load(file)
     logging.info(f"Initial account data fetched")
     return data
