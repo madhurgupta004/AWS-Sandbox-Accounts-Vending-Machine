@@ -12,11 +12,8 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 
 
 def get_initial_account_data():
-    response = s3_client.get_object(Bucket=INITIAL_DATA_BUCKET_NAME, Key=initial_account_data_s3_key)
-
-    content = response['Body'].read().decode('utf-8')
-    data = json.loads(content)
-    logging.debug(response)
+    with open('sample_data/account_data.json', 'r') as file:
+        data = json.load(file)
     logging.info(f"Initial account data fetched")
     return data
 
@@ -103,8 +100,8 @@ def create_user_for_manager():
     )
     logging.debug(response)
 
+    logging.info(f'User for manager {account_data['managerUserName']} is created.')
     send_welcome_email(account_data['managerEmail'], manager_user_name, initial_password)
-    logging.info(f'User for manager {account_data['managerUserName']} is created and email sent. Password is {initial_password}')
 
 
 def create_group_for_interns():
@@ -147,8 +144,8 @@ def create_users_for_interns():
         )
         logging.debug(response)
 
+        logging.info(f'User {user_name} created, added to group {GROUP_NAME}.')
         send_welcome_email(user_email, user_name, initial_password)
-        logging.info(f'User {user_name} created, added to group {GROUP_NAME}. Password is {initial_password}')
 
 
 def get_scp_ids() -> List[str]:
@@ -194,49 +191,107 @@ def detach_default_scp():
 
 
 def send_welcome_email(to_email, username, initial_password, region="us-east-1"):
+    return
     ses = get_boto3_client('ses', access_key=ACCESS_KEY, secret_access_key=SECRET_ACCESS_KEY, region=region)
 
     login_url = f"https://{account_data['accountId']}.signin.aws.amazon.com/console"
 
     subject = "Your AWS IAM User Account Details"
-    body_text = f"""Hello,
+    body_text = f"""Hello {username},
 
-            Your AWS IAM user has been created.
+        Your AWS IAM user account has been successfully created.
 
-            Username: {username}
-            Initial Password: {initial_password}
-            Console Sign-in Link: {login_url}
+        Here are your temporary login details:
 
-            Please sign in and reset your password immediately.
+        Username: {username}
+        Initial Password: {initial_password}
+        Sign-in URL: {login_url}
 
-            Thanks,
-            AWS Admin Team
-            """
+        Please sign in and reset your password.
+
+        If you have any questions, feel free to reach out to us.
+
+        Best regards,  
+        AWS Admin Team
+        """
+
+    body_html = f"""
+        <html>
+        <head></head>
+        <body>
+        <p>Hello <strong>{username}</strong>,</p>
+
+        <p>Your AWS IAM user account has been <strong>successfully created</strong>.</p>
+
+        <p><strong>Here are your temporary login details:</strong></p>
+        <ul>
+            <li><strong>Username:</strong> {username}</li>
+            <li><strong>Initial Password:</strong> {initial_password}</li>
+            <li><strong>Sign-in URL:</strong> <a href="{login_url}">{login_url}</a></li>
+        </ul>
+
+        <p>Please sign in and <strong>reset your password</strong>.</p>
+
+        <p>If you have any questions, feel free to reach out to us.</p>
+
+        <p>Best regards,<br/>
+        AWS Admin Team</p>
+        </body>
+        </html>
+        """
+
     response = ses.send_email(
-        Source="madhurgupta590+ses@gmail.com",  
+        Source = SOURCE_EMAIL_ADDRESS,  
         Destination={'ToAddresses': [to_email]},
         Message={
             'Subject': {'Data': subject},
             'Body': {
-                'Text': {'Data': body_text}
+                'Text': {'Data': body_text},
+                'Html': {'Data': body_html}
             }
         }
     )
     logging.debug(response)
-    logging.info(f"Email sent to {username} Message ID: {response['MessageId']}")
+    logging.info(f"Email sent to {username} with signin credentials.")
 
 
 def upload_account_details_to_s3():
-    key_name = f'final_account_data_{account_data['accountName']}.json'
+    key_name = f'sandbox_accounts_data/final_account_data_{account_data['accountName']}.json'
 
-    json_data = json.dumps(account_data)
     s3_client.put_object(
         Bucket=FINAL_DATA_BUCKET_NAME,
         Key=key_name,
-        Body=json_data.encode('utf-8'),
+        Body=json.dumps(account_data, indent=2).encode('utf-8'),
         ContentType='application/json'
     )
     logging.info(f'Account details uploaded to S3 bucket {FINAL_DATA_BUCKET_NAME}.')
+
+
+def update_accounts_emails_mapping():
+    key_name = 'accounts_emails_mapping.json'
+    new_account_mapping = {
+        account_data['accountId']: {
+            'accountName' : account_data['accountName'],
+            'managerName': account_data['managerUserName'],
+            'managerEmail': account_data['managerEmail']
+        }
+    }
+
+    try: 
+        response = s3_client.get_object(Bucket=FINAL_DATA_BUCKET_NAME, Key=key_name)
+        accounts_emails_mapping = json.loads(response['Body'].read())
+        accounts_emails_mapping.append(new_account_mapping)
+    except s3_client.exceptions.NoSuchKey:
+        accounts_emails_mapping = new_account_mapping
+
+    s3_client.put_object(
+        Bucket=FINAL_DATA_BUCKET_NAME,
+        Key=key_name,
+        Body=json.dumps(accounts_emails_mapping, indent=2).encode('utf-8'),
+        ContentType='application/json'
+    )
+
+    logging.info('Accounts emails mapping updated')
 
 
 if __name__ == "__main__":
@@ -245,9 +300,8 @@ if __name__ == "__main__":
         s3_client = get_boto3_client('s3', ACCESS_KEY, SECRET_ACCESS_KEY)
 
         account_data = get_initial_account_data()
-        logging.info(f"{ACCESS_KEY}, {SECRET_ACCESS_KEY}")
 
-        create_account()
+        # create_account()
         wait_until_account_created()
         move_into_ou()
 
@@ -263,6 +317,7 @@ if __name__ == "__main__":
         detach_default_scp()
 
         upload_account_details_to_s3()
+        update_accounts_emails_mapping()
 
         logging.info(f'Account creation successful!')
     except KeyError as ex:

@@ -1,24 +1,28 @@
 {
-    "accountName": "DNSWatch",
-    "accountEmail": "madhurgupta590+dns_watch1@gmail.com",
+    "accountName": "NDR",
+    "accountEmail": "madhurgupta590+ndr@gmail.com",
     "roleName": "OrganizationAccountAccessRole",
     "managerEmail": "madhurgupta590+manager@gmail.com",
-    "managerUserName": "manager_dnswatch",
+    "managerUserName": "Manager_NDR",
+    "accountRequestId": "car-47fa8fc40623462fbe779ba7d4f87649",
     "users": [
         {
             "email": "madhurgupta590+user@gmail.com",
-            "userName": "DNSWatchUser1"
+            "userName": "Shailesh"
         },
         {
             "email": "madhurgupta590+user@gmail.com",
-            "userName": "DNSWatchUser2"
+            "userName": "Faraz"
+        },
+        {
+            "email": "madhurgupta590+user@gmail.com",
+            "userName": "Ishu"
         }
     ],
     "serviceControlPolicies": [
         "region-restrictions",
-        "AllowCloudformation",
-        "AllowIAM",
-        "AllowServerlessServices"
+        "AllowServerlessServices",
+        "BasicPermissions"
     ],
     "internsGroupPolicyARNs": [
         "arn:aws:iam::aws:policy/ReadOnlyAccess",

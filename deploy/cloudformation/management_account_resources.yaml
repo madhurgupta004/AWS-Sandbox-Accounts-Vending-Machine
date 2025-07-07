@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Resources to be deployed in management account
+
+Parameters:
+  LambdaFunctionName:
+    Type: String
+    Default: send-weekly-email
+    Description: Name of the Lambda function to be created
+  AccountsDataBucketName:
+    Type: String
+    Description: Name of the S3 bucket where the Sandbox Accounts data will be stored
+  LambdaCodeBucket: 
+    Type: String
+    Description: Name of the S3 bucket where the Lambda function code is stored
+  LambdaCodeKey:
+    Type: String
+    Description: S3 key for the Lambda function code zip file
+  EvenBridgeRuleName:
+    Type: String
+    Default: trigger-lambda-rule
+    Description: Name of the EventBridge rule to trigger the Lambda function
+  OrganizationID:
+    Type: String
+    Description: ID of the AWS Organization
+  SandboxOUID:
+    Type: String
+    Description: Organizational Unit ID of the Sandbox OU in the organization
+  SenderEmail:
+    Type: String
+    Description: Verified Email address to be used as the sender for SES emails
+    Default: madhurgupta590+ses@gmail.com
+
+Resources:
+
+  TriggerLambdaRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Ref EvenBridgeRuleName
+      Description: Trigger Lambda weekly on Mondays at 10:00 AM UTC
+      ScheduleExpression: cron(30 4 ? * MON *)  # Every Monday 10:00 AM IST
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt SendWeeklyEmailLambda.Arn
+          Id: send-weekly-email-target
+
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LambdaFunctionName
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt TriggerLambdaRule.Arn
+
+  SendWeeklyEmailLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref LambdaFunctionName
+      Handler: send_weekly_email.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref LambdaCodeKey
+      Runtime: python3.9
+      Timeout: 300
+      Environment:
+        Variables:
+          ACCOUNTS_DATA_BUCKET: !Ref AccountsDataBucketName
+          SANDBOX_OU_ID: !Ref SandboxOUID
+          SENDER_EMAIL: !Ref SenderEmail
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${LambdaFunctionName}-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: send-weekly-email-lambda-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Effect: Allow
+                Action:  
+                  - logs:CreateLogStream 
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${LambdaFunctionName}:*"
+              - Effect: Allow
+                Action: ses:SendEmail
+                Resource: "*"
+              - Effect: Allow
+                Action: 
+                  - ce:GetCostAndUsage
+                  - ce:GetCostForecast
+                Resource: "*"
+              - Effect: Allow
+                Action: organizations:ListAccountsForParent
+                Resource: !Sub "arn:aws:organizations::${AWS::AccountId}:ou/${OrganizationID}/${SandboxOUID}"
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub "arn:aws:s3:::${AccountsDataBucketName}/*"
+
+  AccountsDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref AccountsDataBucketName
+      VersioningConfiguration:
+        Status: Enabled
