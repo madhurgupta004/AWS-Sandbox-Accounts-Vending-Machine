@@ -5,8 +5,8 @@ import logging
 from typing import List
 from botocore.exceptions import ClientError
 
-from .helpers import *
-from ..common.boto3_helper import get_boto3_client
+from account_creation.helpers import *
+from common.boto3_helper import get_boto3_client
 
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)

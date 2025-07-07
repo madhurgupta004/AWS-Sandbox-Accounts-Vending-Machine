@@ -3,8 +3,8 @@ import logging
 
 from botocore.exceptions import ClientError
 
-from .helpers import account_id, ACCESS_KEY, SECRET_ACCESS_KEY
-from ..common.boto3_helper import get_boto3_client
+from account_deletion.helpers import account_id, ACCESS_KEY, SECRET_ACCESS_KEY
+from common.boto3_helper import get_boto3_client
 
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)

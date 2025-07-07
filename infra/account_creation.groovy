@@ -9,7 +9,7 @@ properties([
 
 
 node {
-    env.PYTHONPATH = "${WORKSPACE}/src/account_creation"
+    env.PYTHONPATH = "${WORKSPACE}/src"
 
     try {
         stage('Checkout') {

@@ -5,7 +5,7 @@ properties([
 ])
 
 node {
-    env.PYTHONPATH = "${WORKSPACE}/src/account_deletion"
+    env.PYTHONPATH = "${WORKSPACE}/src"
 
     try {
         stage('Checkout') {
