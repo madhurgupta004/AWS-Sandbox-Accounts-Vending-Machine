@@ -19,7 +19,7 @@ node {
                 accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                 secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
             ]]) {
-                dir('src') {
+                dir('src/account_deletion') {
                     sh "python3 run.py --account-id ${params.ACCOUNT_ID}"
                 }
             }
