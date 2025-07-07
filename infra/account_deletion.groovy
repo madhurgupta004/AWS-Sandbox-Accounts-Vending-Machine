@@ -1,5 +1,11 @@
+properties([
+    parameters([
+        string(name: 'ACCOUNT_ID', description: 'ID of the account to delete'),
+        ])
+])
+
 node {
-    env.PYTHONPATH = "${WORKSPACE}/src"
+    env.PYTHONPATH = "${WORKSPACE}/src/account_deletion"
 
     try {
         stage('Checkout') {
@@ -14,7 +20,7 @@ node {
                 secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
             ]]) {
                 dir('src') {
-                    sh "python3 run.py"
+                    sh "python3 run.py --account-id ${params.ACCOUNT_ID}"
                 }
             }
         }

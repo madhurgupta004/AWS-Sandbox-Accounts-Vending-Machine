@@ -5,7 +5,8 @@ import logging
 from typing import List
 from botocore.exceptions import ClientError
 
-from helpers import *
+from .helpers import *
+from ..common.boto3_helper import get_boto3_client
 
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -23,7 +24,7 @@ def create_account():
     response = organization_client.create_account(
         Email=account_data['accountEmail'],
         AccountName=account_data['accountName'],
-        RoleName=account_data['roleName'],
+        RoleName=ROLE_FOR_MANAGEMENT_ACCOUNT,
         IamUserAccessToBilling='ALLOW',
     ) 
     logging.debug(response)
@@ -51,8 +52,8 @@ def wait_until_account_created():
 def move_into_ou():
     response = organization_client.move_account(
         AccountId=account_data['accountId'],
-        SourceParentId=ROOT_OU_ID,
-        DestinationParentId=SANDBOX_OU_ID,
+        SourceParentId=root_ou,
+        DestinationParentId=sandbox_ou,
     )
     logging.debug(response)
     logging.info(f"Account moved into Sandbox OU")
@@ -60,7 +61,7 @@ def move_into_ou():
 
 def get_iam_client_of_member_account():
     sts_client = get_boto3_client('sts', ACCESS_KEY, SECRET_ACCESS_KEY)
-    role_arn = f"arn:aws:iam::{account_data['accountId']}:role/{account_data['roleName']}"
+    role_arn = f"arn:aws:iam::{account_data['accountId']}:role/{ROLE_FOR_MANAGEMENT_ACCOUNT}"
 
     response = sts_client.assume_role(
         RoleArn=role_arn,
@@ -241,7 +242,7 @@ def send_welcome_email(to_email, username, initial_password, region="us-east-1")
         """
 
     response = ses.send_email(
-        Source = SOURCE_EMAIL_ADDRESS,  
+        Source = source_email,  
         Destination={'ToAddresses': [to_email]},
         Message={
             'Subject': {'Data': subject},
@@ -259,12 +260,12 @@ def upload_account_details_to_s3():
     key_name = f'sandbox_accounts_data/final_account_data_{account_data['accountName']}.json'
 
     s3_client.put_object(
-        Bucket=FINAL_DATA_BUCKET_NAME,
+        Bucket=final_account_data_bucket,
         Key=key_name,
         Body=json.dumps(account_data, indent=2).encode('utf-8'),
         ContentType='application/json'
     )
-    logging.info(f'Account details uploaded to S3 bucket {FINAL_DATA_BUCKET_NAME}.')
+    logging.info(f'Account details uploaded to S3 bucket {final_account_data_bucket}.')
 
 
 def update_accounts_emails_mapping():
@@ -278,14 +279,14 @@ def update_accounts_emails_mapping():
     }
 
     try: 
-        response = s3_client.get_object(Bucket=FINAL_DATA_BUCKET_NAME, Key=key_name)
+        response = s3_client.get_object(Bucket=final_account_data_bucket, Key=key_name)
         accounts_emails_mapping = json.loads(response['Body'].read())
         accounts_emails_mapping.append(new_account_mapping)
     except s3_client.exceptions.NoSuchKey:
         accounts_emails_mapping = new_account_mapping
 
     s3_client.put_object(
-        Bucket=FINAL_DATA_BUCKET_NAME,
+        Bucket=final_account_data_bucket,
         Key=key_name,
         Body=json.dumps(accounts_emails_mapping, indent=2).encode('utf-8'),
         ContentType='application/json'
