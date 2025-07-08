@@ -24,7 +24,7 @@ node {
                 secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
             ]]) {
                 dir('src/account_creation') {
-                    sh "python3 run.py --root-ou-id ${params.ROOT_OU_ID} --sandbox-ou-id ${params.SANDBOX_OU_ID} --final-account-data-bucket ${params.FINAL_ACCOUNT_DATA_BUCKET} --source-email ${params.SES_VERIFIED_SOURCE_EMAIL}"
+                    sh "python3 run.py --root-ou-id ${params.ROOT_OU_ID} --sandbox-ou-id ${params.SANDBOX_OU_ID} --final-account-data-bucket ${params.FINAL_ACCOUNT_DATA_BUCKET} --ses-verified-source-email ${params.SES_VERIFIED_SOURCE_EMAIL}"
                 }
             }
         }
