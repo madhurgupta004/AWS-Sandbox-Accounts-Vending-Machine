@@ -13,7 +13,6 @@ __all__ = [
     'sandbox_ou',
     'source_email',
     'final_account_data_bucket',
-    'get_boto3_client',
     'generate_password',  
     'GROUP_NAME',
     'ACCESS_KEY',
