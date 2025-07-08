@@ -71,6 +71,7 @@ def send_email(account_id, manager_email, actual_cost, actual_cost_unit):
         f'Cost Report for AWS Account: {account_id}\n'
         f'Month: {month}\n\n'
         f'Current Cost (up to {end_date}): {actual_cost:.2f} {actual_cost_unit}\n'
+        f'Click here to view the detailed cost report in AWS Cost Explorer.\n\n'
         f'This is an automated message. For details, check AWS Cost Explorer.'
     )
 
@@ -81,7 +82,7 @@ def send_email(account_id, manager_email, actual_cost, actual_cost_unit):
         <ul>
             <li><strong>Current Cost (up to {end_date}):</strong> {actual_cost:.2f} {actual_cost_unit}</li>
         </ul>
-        <p>This is an automated message. For details, check AWS Cost Explorer.</p>
+        <p>This is an automated message. For details, check <a href="https://us-east-1.console.aws.amazon.com/costmanagement/home?region=us-east-1#/home"><b> AWS Cost Explorer </b></a></p>
         """
     )
     
