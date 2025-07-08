@@ -3,7 +3,6 @@
     "accountEmail": "madhurgupta590+ndr@gmail.com",
     "managerEmail": "madhurgupta590+manager@gmail.com",
     "managerUserName": "Manager_NDR",
-    "accountRequestId": "car-47fa8fc40623462fbe779ba7d4f87649",
     "users": [
         {
             "email": "madhurgupta590+user@gmail.com",
@@ -19,7 +18,7 @@
         }
     ],
     "serviceControlPolicies": [
-        "region-restrictions",
+        "RegionRestrictions",
         "AllowServerlessServices",
         "BasicPermissions"
     ],
