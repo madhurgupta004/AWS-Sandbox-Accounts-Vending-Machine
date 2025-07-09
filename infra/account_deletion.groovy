@@ -13,14 +13,14 @@ node {
         }
 
         stage('Run Python Script') {
-            withCredentials([[
-                $class: 'AmazonWebServicesCredentialsBinding',
-                credentialsId: 'my_aws_account',
-                accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-            ]]) {
-                dir('src/account_deletion') {
-                    sh "python3 run.py --account-id ${params.ACCOUNT_ID}"
+            dir('src/account_deletion') {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'my_aws_account',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                        sh "python3 run.py --account-id ${params.ACCOUNT_ID}"
                 }
             }
         }

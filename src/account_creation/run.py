@@ -301,7 +301,7 @@ if __name__ == "__main__":
 
         account_data = get_initial_account_data()
 
-        create_account()
+        # create_account()
         wait_until_account_created()
         move_into_ou()
 
